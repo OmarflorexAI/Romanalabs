@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>7‑Day Health‑Coach Automation Accelerator | Romanalabs</title>
+  <meta name="description" content="We set up a fully automated client onboarding and follow‑up system for health coaches in 7 days: calendars, intake forms, reminders and progress dashboards. Save 5+ hours/week or pay $0.">
+  <meta property="og:title" content="7‑Day Health‑Coach Automation Accelerator">
+  <meta property="og:description" content="Calendars, intake forms, reminders & dashboards built in 7 days. Double capacity without extra admin. Save 5+ hours/week or you don’t pay.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://romanalabs.com/">
+  <meta property="og:image" content="https://romanalabs.com/assets/og-image.png">
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0f0e;
+      --fg: #ecfdf5;
+      --accent: #34d399;
+      --accent-2: #a7f3d0;
+    }
+    body{ background: var(--bg); color: var(--fg); font-family:'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji','Segoe UI Emoji'; }
+    .glass{ background: rgba(255,255,255,.04); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.08); }
+    .shadow-soft{ box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+    .btn{ transition: transform .15s ease; }
+    .btn:hover{ transform: translateY(-1px); }
+    main{ position: relative; z-index: 1;}
+    canvas#wave{ position: fixed; inset:0; z-index: 0; }
+    .hair{ border-color: rgba(167,243,208,.18); }
+    /* Flowing hover effect for cards */
+    .flow-card{ position: relative; overflow: hidden; }
+    .flow-card::before{
+      content:''; position:absolute; inset:-150%; background: conic-gradient(from 0deg, transparent, rgba(52,211,153,.25), transparent 30%);
+      animation: spin 6s linear infinite; opacity:0; transition: opacity .3s ease;
+    }
+    .flow-card:hover::before{ opacity:1; }
+    .flow-card > .inner{ position: relative; }
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+  
+    html{ scroll-behavior: smooth; }
+    .reveal{ opacity:0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.show{ opacity:1; transform: translateY(0); }
+    .flow-card{ position: relative; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+.flow-card::before{
+  content:''; position:absolute; inset:-2px; pointer-events:none;
+  background: radial-gradient(120px 24px at var(--mx,50%) -10%, rgba(255,255,255,.12), transparent 60%),
+              radial-gradient(140px 28px at calc(var(--mx,50%) + 80px) -6%, rgba(52,211,153,.25), transparent 70%);
+  opacity:0; filter: blur(0.5px);
+  transition: opacity .3s ease;
+  animation: waveGlow 4s ease-in-out infinite;
+}
+.flow-card:hover{ transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.45); border-color: rgba(52,211,153,.35)!important; }
+.flow-card:hover::before{ opacity:1; }
+@keyframes waveGlow{
+  0%,100%{ background-position: 0 0, 0 0; }
+  50%{ background-position: 40px 0, -40px 0; }
+}
+    .flow-card:hover{ transform: translateY(-4px); box-shadow: 0 18px 40px rgba(0,0,0,.45); border-color: rgba(52,211,153,.35)!important; }
+
+    /* Modal edge glow */
+    .modal-card{ position: relative; transform: translateY(28px); opacity:0; transition: transform .35s ease, opacity .35s ease; } }
+    .modal-card::after{
+      content:''; position:absolute; inset:-2px; border-radius: inherit;
+      pointer-events:none;
+      background: radial-gradient(80% 30% at 50% -10%, rgba(52,211,153,.30), transparent 60%),
+                  radial-gradient(80% 30% at 0% 110%, rgba(52,211,153,.18), transparent 70%),
+                  radial-gradient(80% 30% at 100% 110%, rgba(52,211,153,.18), transparent 70%);
+      filter: blur(18px); opacity:.9;
+    }
+
+    /* Slide-in when modal opens */
+    #modal.open .modal-card{ transform: translateY(0); opacity:1; }
+    /* Hide bottom Apply section */
+    #apply{ display: none !important; }
+</style>
+</head>
+<body class="min-h-screen antialiased selection:bg-emerald-300/30 selection:text-white">
+  <canvas id="wave"></canvas>
+
+  <header class="relative z-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="./assets/logo.svg" alt="Romanalabs logo" class="w-9 h-9">
+        <span class="font-semibold tracking-tight text-white">Romanalabs</span>
+      </div>
+      <nav class="hidden md:flex items-center gap-6 text-sm text-emerald-200/80">
+        <a href="#how" class="hover:text-white">How it works</a>
+        <a href="#faq" class="hover:text-white">FAQ</a>
+      </nav>
+      <button id="openModal" class="btn inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-black bg-emerald-300 hover:bg-emerald-200 shadow-soft">
+        Get In Touch 
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="relative z-10 reveal pt-10 pb-10 sm:pt-16 sm:pb-16">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 grid md:grid-cols-12 gap-10 items-center">
+        <div class="md:col-span-7">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 text-emerald-200 text-xs">7‑Day Health‑Coach Automation Accelerator</div>
+          <h1 class="mt-4 text-4xl sm:text-5xl font-light tracking-tight leading-tight">Double your client <span class="text-emerald-300">capacity</span><br class="hidden sm:block">without extra <span class="text-emerald-300">admin</span>.</h1>
+          <p class="mt-4 text-emerald-100/80 text-lg">
+            In 7 days we build your booking calendars, intake forms, automatic reminders and progress dashboards. <span class="text-emerald-300 font-semibold">Save 5+ hours/week</span> or you don’t pay.
+          </p>
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button id="openModal2" class="btn inline-flex justify-center items-center rounded-full px-5 py-3 font-semibold text-black bg-emerald-300 hover:bg-emerald-200 shadow-soft">
+              Get In Touch
+            </button>
+            <a href="./assets/pricing-timeline.pdf" download class="inline-flex w-full items-center justify-center rounded-full border border-emerald-300/30 px-6 py-4 text-base font-semibold tracking-tight text-emerald-100 hover:bg-white/5">See pricing & 7-day delivery plan (PDF)</a>
+<p class="mt-2 text-xs text-emerald-200/70">Includes: exact flat-fee pricing · day-by-day build schedule · ROI guarantee terms</p>
+          </div>
+          <div class="mt-6 text-xs text-emerald-200/70 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            30‑day support included · Personal walkthrough · Done‑for‑you setup
+          </div>
+        </div>
+        <div class="md:col-span-5 glass rounded-3xl p-6 sm:p-8 border shadow-soft flow-card">
+          <div class="inner">
+            <h3 class="text-xl font-semibold">Instant ROI: what we set up</h3>
+            <ul class="mt-4 space-y-3 text-emerald-100/90">
+              <li class="flex gap-3"><span class="h-6 w-6 flex items-center justify-center rounded-full bg-emerald-400/20"><span class="text-emerald-300">✓</span></span> Calendars with no‑show‑proof reminders</li>
+              <li class="flex gap-3"><span class="h-6 w-6 flex items-center justify-center rounded-full bg-emerald-400/20"><span class="text-emerald-300">✓</span></span> Intake forms that auto‑create client folders</li>
+              <li class="flex gap-3"><span class="h-6 w-6 flex items-center justify-center rounded-full bg-emerald-400/20"><span class="text-emerald-300">✓</span></span> Weekly progress dashboards & check‑ins</li>
+              <li class="flex gap-3"><span class="h-6 w-6 flex items-center justify-center rounded-full bg-emerald-400/20"><span class="text-emerald-300">✓</span></span> CRM + templates to close faster</li>
+            </ul>
+            <div class="mt-6 border-t border-white/10 pt-6">
+              <form name="lead" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="lead" class="grid gap-3">
+                <input type="hidden" name="form-name" value="lead">
+                <p class="hidden"><label>Don’t fill this out: <input name="bot-field"></label></p>
+                <input class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 placeholder:text-emerald-200/60" name="name" placeholder="Your name" required>
+                <input class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 placeholder:text-emerald-200/60" type="email" name="email" placeholder="Email" required>
+                <input class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 placeholder:text-emerald-200/60" name="phone" placeholder="Phone (optional)">
+                <button class="btn rounded-xl px-5 py-3 font-semibold text-black bg-emerald-300 hover:bg-emerald-200">Send me the price & timeline</button>
+                <div id="leadStatus" class="text-xs text-emerald-200/70"></div>
+                <p class="text-xs text-emerald-200/60">By submitting you agree to receive helpful emails and can unsubscribe anytime.</p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </section>
+
+    <!-- Problem / Solution -->
+    <section id="how" class="relative z-10 reveal py-12 sm:py-20">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10">
+        <div class="glass rounded-3xl p-6 sm:p-8 border flow-card"><div class="inner">
+          <h2 class="text-2xl  font-light">The problem</h2>
+          <ul class="mt-4 space-y-3 text-emerald-100/90 list-disc pl-5">
+            <li>Leads slip through cracks without timely follow‑up.</li>
+            <li>No‑shows steal hours every week.</li>
+            <li>Manual onboarding slows you down.</li>
+          </ul>
+        </div></div>
+        <div class="glass rounded-3xl p-6 sm:p-8 border flow-card"><div class="inner">
+          <h2 class="text-2xl font-bold">Our solution</h2>
+          <ul class="mt-4 space-y-3 text-emerald-100/90 list-disc pl-5">
+            <li>Automated sequences respond within seconds.</li>
+            <li>Smart reminders cut no‑shows by 30–60%.</li>
+            <li>Dashboards keep clients engaged between calls.</li>
+          </ul>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- Features in 3 bullets -->
+    <section class="relative z-10 reveal py-12 sm:py-20">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 grid md:grid-cols-3 gap-6">
+        <div class="glass rounded-3xl p-6 border flow-card"><div class="inner">
+          <h3 class="text-xl font-semibold mb-2">Book & qualify on autopilot</h3>
+          <p class="text-emerald-100/90">Calendars, forms, and workflows that book calls, collect info, and segment leads automatically.</p>
+        </div></div>
+        <div class="glass rounded-3xl p-6 border flow-card"><div class="inner">
+          <h3 class="text-xl font-semibold mb-2">Reduce no‑shows</h3>
+          <p class="text-emerald-100/90">Email/SMS reminders with smart timing + reschedule links reduce friction and wasted time.</p>
+        </div></div>
+        <div class="glass rounded-3xl p-6 border flow-card"><div class="inner">
+          <h3 class="text-xl font-semibold mb-2">Progress dashboards</h3>
+          <p class="text-emerald-100/90">Clients log habits & check‑ins; you see everything at a glance so coaching calls are sharper.</p>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- Statement: AI at the center -->
+    <section class="relative z-10 reveal py-12 sm:py-16">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-center text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-tight">We put AI at the center<br class="hidden sm:block"> of <span class="text-emerald-300">everything</span> we do.</h2>
+        <p class="mt-2 text-emerald-200/80"></p>
+      </div>
+    </section>
+
+    <!-- Mini case study -->
+    <section id="case" class="relative z-10 reveal py-12 sm:py-20">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div class="glass rounded-3xl p-6 sm:p-8 border flow-card"><div class="inner">
+          <h2 class="text-2xl font-bold">Mini case study</h2>
+          <p class="mt-3 text-emerald-100/90">Coach Giovanni moved from scattered DMs to a clean pipeline in 7 days. Bookings increased 72%, no‑shows dropped 41%, and he saved ~6 hours per week.</p>
+          <ul class="mt-4 grid sm:grid-cols-3 gap-4 text-center">
+            <li class="rounded-2xl p-4 border border-emerald-500/20">+72% <span class="block text-xs text-emerald-200/70">Bookings</span></li>
+            <li class="rounded-2xl p-4 border border-emerald-500/20">‑41% <span class="block text-xs text-emerald-200/70">No‑shows</span></li>
+            <li class="rounded-2xl p-4 border border-emerald-500/20">6 hrs/wk <span class="block text-xs text-emerald-200/70">Time saved</span></li>
+          </ul>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="relative z-10 reveal py-12 sm:py-20">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold mb-6">FAQ</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="glass rounded-2xl p-5 border flow-card"><div class="inner">
+            <h3 class="font-semibold">What platforms do you use?</h3>
+            <p class="text-emerald-100/90 mt-2">We work with your stack (Calendly/Acuity, Typeform/Tally, ConvertKit/ActiveCampaign, Notion/Airtable, Supabase). We choose the fastest path to results.</p>
+          </div></div>
+          <div class="glass rounded-2xl p-5 border flow-card"><div class="inner">
+            <h3 class="font-semibold">What if it doesn’t save me 5 hours/week?</h3>
+            <p class="text-emerald-100/90 mt-2">You don’t pay. We track time saved with a simple baseline worksheet + weekly check‑ins.</p>
+          </div></div>
+          <div class="glass rounded-2xl p-5 border flow-card"><div class="inner">
+            <h3 class="font-semibold">How fast is the 7‑day build?</h3>
+            <p class="text-emerald-100/90 mt-2">Day 1 plan, Day 2–5 implementation, Day 6 QA, Day 7 handoff + walkthrough. Then 30 days of support.</p>
+          </div></div>
+          <div class="glass rounded-2xl p-5 border flow-card"><div class="inner">
+            <h3 class="font-semibold">Can you integrate payments?</h3>
+            <p class="text-emerald-100/90 mt-2">Yes. Stripe checkout links or invoices can be added to your flows.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing / Apply -->
+    
+    <section id="apply" class="relative z-10 reveal py-12 sm:py-20">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 glass rounded-3xl p-6 sm:p-8 border flow-card"><div class="inner">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <div>
+            <h2 class="text-2xl font-bold">Apply for the 7‑Day Accelerator</h2>
+            <p class="mt-2 text-emerald-100/90">One flat fee. ROI guarantee. We take 2 new builds per week.</p>
+            <ul class="mt-4 space-y-2 text-emerald-100/90 list-disc pl-5">
+              <li>Done‑for‑you build + personal walkthrough</li>
+              <li>30‑day support + tweaks</li>
+              <li>“Save 5 hours/week or $0” guarantee</li>
+            </ul>
+          </div>
+          <div class="space-y-3">
+            <button id="openModal3" class="btn block w-full text-center rounded-full px-5 py-3 font-semibold text-black bg-emerald-300 hover:bg-emerald-200">Get In Touch</button>
+            <a href="./assets/pricing-timeline.pdf" download class="inline-flex w-full items-center justify-center rounded-full border border-emerald-300/30 px-6 py-4 text-base font-semibold tracking-tight text-emerald-100 hover:bg-white/5">See pricing & 7-day delivery plan (PDF)</a>
+<p class="mt-2 text-xs text-emerald-200/70">Includes: exact flat-fee pricing · day-by-day build schedule · ROI guarantee terms</p>
+            <p class="text-xs text-emerald-200/60">Prefer email only? Submit the form above and we’ll send details.</p>
+          </div>
+        </div>
+      </div></div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 py-10">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row gap-6 items-center justify-between text-sm text-emerald-200/70">
+      <div class="flex items-center gap-3">
+        <img src="./assets/logo.svg" class="w-7 h-7" alt="logo">
+        <span>© <span id="y"></span> Romanalabs. All rights reserved.</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="#" aria-label="Twitter" class="hover:text-white">Twitter</a>
+        <a href="#" aria-label="Instagram" class="hover:text-white">Instagram</a>
+        <a href="#" aria-label="LinkedIn" class="hover:text-white">LinkedIn</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal form -->
+  <div id="modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/70"></div>
+    <div class="relative mx-auto max-w-3xl w-full h-full sm:h-auto sm:mt-10 p-0 sm:p-6">
+      <div class="glass border shadow-soft rounded-3xl max-h-[90vh] overflow-auto p-6 sm:p-8 bg-[#0f1715]/95 modal-card">
+        <div class="flex justify-between items-start">
+          <h3 class="text-2xl font-bold">Tell us where you’re at</h3>
+          <button id="closeModal" class="text-emerald-200/70 hover:text-white text-2xl leading-none">×</button>
+        </div>
+        <form class="grid sm:grid-cols-2 gap-5 mt-6" name="intake" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="intake">
+          <p class="hidden"><label>Don’t fill this out: <input name="bot-field"></label></p>
+          <div>
+            <label class="text-sm text-emerald-200/80">What is your name?</label>
+            <input name="name" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Name" required>
+          </div>
+          <div>
+            <label class="text-sm text-emerald-200/80">What is your email?</label>
+            <input type="email" name="email" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Email" required>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-sm text-emerald-200/80">What is your role in the company?</label>
+            <input name="role" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Enter role">
+          </div>
+          <div>
+            <label class="text-sm text-emerald-200/80">Company Name</label>
+            <input name="company" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Enter company name">
+          </div>
+          <div>
+            <label class="text-sm text-emerald-200/80">Company Website</label>
+            <input name="website" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Enter company website">
+          </div>
+          <div>
+            <label class="text-sm text-emerald-200/80">Company Size</label>
+            <select name="size" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2">
+              <option value="1-5" class="bg-[#0b0f0e]">1–5</option>
+              <option value="6-20" class="bg-[#0b0f0e]">6–20</option>
+              <option value="21-50" class="bg-[#0b0f0e]">21–50</option>
+              <option value="51-200" class="bg-[#0b0f0e]">51–200</option>
+              <option value="200+" class="bg-[#0b0f0e]">200+</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm text-emerald-200/80">Company’s Annual Revenue</label>
+            <select name="revenue" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2">
+              <option value="<100k" class="bg-[#0b0f0e]">&lt;$100k</option>
+              <option value="100k-500k" class="bg-[#0b0f0e]">$100k–$500k</option>
+              <option value="500k-1m" class="bg-[#0b0f0e]">$500k–$1M</option>
+              <option value="1m-5m" class="bg-[#0b0f0e]">$1M–$5M</option>
+              <option value="5m+" class="bg-[#0b0f0e]">$5M+</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-sm text-emerald-200/80">Project budget</label>
+            <select name="budget" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2">
+              <option value="<2k" class="bg-[#0b0f0e]">&lt;$2k</option>
+              <option value="2k-5k" class="bg-[#0b0f0e]">$2k–$5k</option>
+              <option value="5k-10k" class="bg-[#0b0f0e]">$5k–$10k</option>
+              <option value="10k+" class="bg-[#0b0f0e]">$10k+</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-sm text-emerald-200/80">What services are you interested in?</label>
+            <select name="services" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2">
+              <option class="bg-[#0b0f0e]" value="automations">Automations & Workflows</option>
+              <option class="bg-[#0b0f0e]" value="dashboards">Dashboards & Reporting</option>
+              <option class="bg-[#0b0f0e]" value="ai">AI Assistants / RAG</option>
+              <option class="bg-[#0b0f0e]" value="setup">Full Tech Setup</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-sm text-emerald-200/80">Message</label>
+            <textarea name="message" class="mt-1 w-full bg-transparent border-b border-emerald-300/30 focus:border-emerald-300 outline-none py-2" placeholder="Enter message"></textarea>
+          </div>
+          <div class="sm:col-span-2 flex justify-end gap-3 mt-2">
+            <button type="button" id="closeModal2" class="px-4 py-2 rounded-full border border-emerald-500/30 text-emerald-100 hover:bg-white/5">Cancel</button>
+            <button class="px-5 py-2 rounded-full bg-emerald-300 text-black font-semibold hover:bg-emerald-200">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+
+    // Wave background
+    const c = document.getElementById('wave'); const ctx = c.getContext('2d');
+    let w, h, t = 0, amp = 18, speed = 0.015, mouseX = 0;
+    function resize(){ w = c.width = window.innerWidth; h = c.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+    window.addEventListener('mousemove', (e)=>{ mouseX = e.clientX / w; });
+    function draw(){
+      t += speed; ctx.clearRect(0,0,w,h); ctx.lineWidth = 1.25;
+      const lines = 6;
+      for(let i=0;i<lines;i++){
+        const yOffset = (i/lines) * h;
+        ctx.beginPath();
+        for(let x=0;x<=w;x+=3){
+          const noise = Math.sin((x*0.008) + t + i)*amp*(1+i*0.25) * (0.6 + mouseX*0.7);
+          const y = yOffset + Math.sin((x*0.004) + t*1.2 + i)*8 + noise*0.15;
+          ctx.lineTo(x, y);
+        }
+        const alpha = 0.15 + i*0.08;
+        ctx.strokeStyle = `rgba(52,211,153,${alpha})`;
+        ctx.stroke();
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Rotating words
+    const words = ["Education","Consulting","Development"]; const words2 = words;
+    const rot = document.getElementById('rotateWord'); const rot2 = document.getElementById('rotateWord2');
+    let idx = 0;
+    setInterval(()=>{
+      idx = (idx+1) % words.length;
+      rot.style.opacity = 0; if(rot2) rot2.style.opacity = 0;
+      setTimeout(()=>{ rot.textContent = words[idx]; if(rot2) rot2.textContent = words[idx]; rot.style.opacity = 1; if(rot2) rot2.style.opacity = 1; }, 200);
+    }, 1600);
+
+    
+    // Wave glow follows cursor on cards
+    document.querySelectorAll('.flow-card').forEach(card=>{
+      card.addEventListener('mousemove', e=>{
+        const r = card.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        card.style.setProperty('--mx', x+'px');
+      });
+    });
+
+    // Modal controls
+    const modal = document.getElementById('modal');
+    function openM(){ modal.classList.remove('hidden'); modal.classList.add('open'); }
+    function closeM(){ modal.classList.remove('open'); modal.classList.add('hidden'); }
+    document.getElementById('openModal')?.addEventListener('click', openM);
+    document.getElementById('openModal2')?.addEventListener('click', openM);
+    document.getElementById('openModal3')?.addEventListener('click', openM);
+    document.getElementById('closeModal')?.addEventListener('click', closeM);
+    document.getElementById('closeModal2')?.addEventListener('click', closeM);
+    
+    // Close on backdrop OR outside card
+    modal.addEventListener('click', (e)=>{
+      const card = modal.querySelector('.modal-card');
+      if(e.target === modal || (card && !card.contains(e.target))) closeM();
+    });
+
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeM(); });
+  </script>
+
+<script>
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('show'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+</script>
+
+<script>
+(function () {
+  const form = document.getElementById('lead');
+  const submitBtn = form?.querySelector('button');
+  const statusEl = document.getElementById('leadStatus');
+
+  async function postJSON(url, body) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const payload = Object.fromEntries(fd.entries());
+
+    try {
+      submitBtn && (submitBtn.disabled = true);
+      statusEl && (statusEl.textContent = 'Sending…');
+
+      let resp;
+      try {
+        resp = await postJSON('/api/lead', payload);
+      } catch (err) {
+        resp = await postJSON('/.netlify/functions/lead', payload);
+      }
+
+      statusEl && (statusEl.textContent = 'Sent! Check your inbox.');
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      statusEl && (statusEl.textContent = 'Something went wrong. Please try again.');
+    } finally {
+      submitBtn && (submitBtn.disabled = false);
+    }
+  });
+})();
+  </script>
+
+  <script>
+  // Send modal intake form to webhook
+  (function(){
+    const form = document.querySelector('form[name="intake"]');
+    if(!form) return;
+    const submitBtn = form.querySelector('button[type="submit"], button:not([type])');
+    const webhook = 'http://localhost:5678/webhook/form-intake';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const payload = Object.fromEntries(fd.entries());
+      try{
+        if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Submitting...'; }
+        const res = await fetch(webhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok){ throw new Error(await res.text()); }
+        // Basic success UX
+        if(submitBtn){ submitBtn.textContent = 'Submitted!'; }
+        form.reset();
+      }catch(err){
+        console.error('Intake submit failed', err);
+        if(submitBtn){ submitBtn.textContent = 'Try again'; }
+      }finally{
+        if(submitBtn){ submitBtn.disabled = false; }
+      }
+    });
+  })();
+  </script>
+
+</body>
+
+</html>
